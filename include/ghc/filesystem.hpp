@@ -64,6 +64,8 @@
 #define GHC_OS_SYS5R4
 #elif defined(BSD)
 #define GHC_OS_BSD
+#elif defined(__redox__)
+#define GHC_OS_REDOX
 #else
 #error "Operating system currently not supported!"
 #endif
@@ -125,7 +127,7 @@
 #else
 #include <sys/statvfs.h>
 #endif
-#if !defined(__ANDROID__) || __ANDROID_API__ >= 26
+#if (!defined(__ANDROID__) || __ANDROID_API__ >= 26) && !defined(__redox__)
 #include <langinfo.h>
 #endif
 #endif
@@ -2157,7 +2159,7 @@ GHC_INLINE u8arguments::u8arguments(int& argc, char**& argv)
     _isvalid = true;
 #else
     std::setlocale(LC_ALL, "");
-#if defined(__ANDROID__) && __ANDROID_API__ < 26
+#if (defined(__ANDROID__) && __ANDROID_API__ < 26) || defined(__redox__)
     _isvalid = true;
 #else
     if (detail::equals_simple_insensitive(::nl_langinfo(CODESET), "UTF-8")) {
@@ -4155,7 +4157,7 @@ GHC_INLINE void last_write_time(const path& p, file_time_type new_time, std::err
     if (!::SetFileTime(file.get(), 0, 0, &ft)) {
         ec = detail::make_system_error();
     }
-#elif defined(GHC_OS_MACOS)
+#elif defined(GHC_OS_MACOS) || defined(GHC_OS_REDOX)
 #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
 #if __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
     struct ::stat fs;
